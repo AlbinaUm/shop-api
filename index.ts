@@ -4,6 +4,8 @@ import fileDb from "./fileDb";
 import cors from "cors";
 
 import fs = require("fs");
+import mysqlDb from "./mysqlDb";
+import categoriesRouter from "./routers/categories";
 
 
 const app = express();
@@ -15,8 +17,11 @@ app.use(express.static('public'));
 
 
 app.use('/products', productsRouter);
+app.use('/categories', categoriesRouter);
 
 const run = async () => {
+    await mysqlDb.init();
+
     if (fs.existsSync('./db.json')) {
         await fileDb.init();
     } else {
