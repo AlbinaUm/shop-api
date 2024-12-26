@@ -2,10 +2,10 @@ import express from "express";
 import productsRouter from "./routers/products";
 import fileDb from "./fileDb";
 import cors from "cors";
-
-import fs = require("fs");
-import mysqlDb from "./mysqlDb";
 import categoriesRouter from "./routers/categories";
+import mongoDb from "./mongoDb";
+import * as mongoose from "mongoose";
+import fs = require("fs");
 
 
 const app = express();
@@ -20,7 +20,7 @@ app.use('/products', productsRouter);
 app.use('/categories', categoriesRouter);
 
 const run = async () => {
-    await mysqlDb.init();
+    await mongoose.connect('mongodb://localhost/shop2');
 
     if (fs.existsSync('./db.json')) {
         await fileDb.init();
@@ -30,6 +30,10 @@ const run = async () => {
 
     app.listen(port, () => {
         console.log(`Server started on port http://localhost:${port}`);
+    });
+
+    process.on('exit', () => {
+       mongoDb.disconnect();
     });
 };
 
