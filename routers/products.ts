@@ -2,12 +2,13 @@ import express from "express";
 import {ProductWithoutId} from "../types";
 import {imagesUpload} from "../multer";
 import Product from "../models/Product";
+import Category from "../models/Category";
 
 const productsRouter = express.Router();
 
 productsRouter.get('/', async (req, res, next) => {
     try {
-        const products  =  await Product.find();
+        const products  =  await Product.find().populate("category", "-_id title description");
         res.send(products);
     } catch (e) {
         next(e);
@@ -34,13 +35,14 @@ productsRouter.get('/:id', async (req, res, next) => {
 
 
 productsRouter.post('/', imagesUpload.single('image'), async (req, res, next) => {
-    // if (!req.body.title || !req.body.price || !req.body.category_id) {
-    //     res.status(400).send({error: "Please send a title, price, category_id"});
-    //     return;
-    // }
+
+    if (req.body.category) {
+        const category = await Category.findById(req.body.category);
+        if (!category) res.status(404).send('Not Found category');
+    }
 
     const newProduct: ProductWithoutId = {
-        category_id: Number(req.body.category_id),
+        category: req.body.category,
         title: req.body.title,
         description: req.body.description,
         price: req.body.price,

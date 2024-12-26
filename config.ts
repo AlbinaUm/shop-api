@@ -1,5 +1,5 @@
 import path from "path";
-import {mySQLPassword} from "./private";
+
 
 const rootPath  = __dirname;
 
@@ -9,7 +9,7 @@ const config =  {
     dataBase: {
         host: 'localhost',
         user: 'root',
-        password: mySQLPassword,
+        password: '324234',
         database: 'shop_db',
     }
 };

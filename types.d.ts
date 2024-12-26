@@ -1,6 +1,6 @@
 export interface Product {
-    id: string;
-    category_id: number;
+    _id: string;
+    category: number;
     title: string;
     price: number;
     description: string;
@@ -11,7 +11,7 @@ export interface Product {
 export type ProductWithoutId = Omit<Product, 'id', 'create_at'>
 
 export interface  Category {
-    id: string;
+    _id: string;
     title: string;
     description: string;
 }
