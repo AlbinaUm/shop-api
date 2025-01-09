@@ -24,12 +24,6 @@ app.use('/users', userRouter);
 const run = async () => {
     await mongoose.connect('mongodb://localhost/shop2');
 
-    if (fs.existsSync('./db.json')) {
-        await fileDb.init();
-    } else {
-        fs.writeFileSync('./db.json', JSON.stringify([]));
-    }
-
     app.listen(port, () => {
         console.log(`Server started on port http://localhost:${port}`);
     });
