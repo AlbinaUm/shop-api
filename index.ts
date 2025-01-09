@@ -6,6 +6,7 @@ import categoriesRouter from "./routers/categories";
 import mongoDb from "./mongoDb";
 import * as mongoose from "mongoose";
 import fs = require("fs");
+import userRouter from "./routers/users";
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.static('public'));
 
 app.use('/products', productsRouter);
 app.use('/categories', categoriesRouter);
+app.use('/users', userRouter);
 
 const run = async () => {
     await mongoose.connect('mongodb://localhost/shop2');
