@@ -1,6 +1,7 @@
 import express from "express";
 import {Error} from "mongoose";
 import User from "../models/User";
+import auth, {RequestWithUser} from "../middleware/auth";
 
 
 const userRouter = express.Router();
@@ -29,24 +30,24 @@ userRouter.post('/', async (req, res, next) => {
 
 userRouter.post('/sessions', async (req, res, next) => {
     try {
-       const user = await User.findOne({username: req.body.username});
+        const user = await User.findOne({username: req.body.username});
 
-       if (!user) {
-           res.status(400).send({error: 'Username not found'});
-           return;
-       }
+        if (!user) {
+            res.status(400).send({error: 'Username not found'});
+            return;
+        }
 
-       const isMatch = await user.checkPassword(req.body.password);
+        const isMatch = await user.checkPassword(req.body.password);
 
-       if (!isMatch) {
-           res.status(400).send({error: 'Password is wrong!'});
-           return;
-       }
+        if (!isMatch) {
+            res.status(400).send({error: 'Password is wrong!'});
+            return;
+        }
 
-       user.generateToken();
-       await user.save();
+        user.generateToken();
+        await user.save();
 
-       res.send({message: 'Username and password is correct', user});
+        res.send({message: 'Username and password is correct', user});
 
     } catch (error) {
         if (error instanceof Error.ValidationError) {
@@ -58,22 +59,14 @@ userRouter.post('/sessions', async (req, res, next) => {
     }
 });
 
-userRouter.post('/secret', async (req, res, next) => {
-    const token = req.get('Authorization');
+userRouter.post('/secret', auth, async (req, res, next) => {
+    let expressReq = req as RequestWithUser;
 
-    if (!token) {
-        res.status(401).send({error: 'No token present'});
-        return;
-    }
+    const user = expressReq.user;
 
-    const user = await User.findOne({token});
+    console.log(user);
 
-    if (!user) {
-        res.status(401).send({error: 'Wrong token'});
-        return;
-    }
-
-    res.send({message: 'Secret material from Attractor', username: user.username, id_user: user._id});
+    res.send({message: 'Secret material from Attractor', user: user});
 });
 
 export default userRouter;
