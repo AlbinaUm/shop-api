@@ -25,6 +25,13 @@ const UserSchema = new Schema<
         type: String,
         required: true,
         unique: true,
+        validate: {
+            validator: async function (value: string): Promise<boolean> {
+                const user: UserFields | null = await User.findOne({username: value});
+                return !user;
+            },
+            message: "This username is already taken",
+        }
     },
     password: {
         type: String,
