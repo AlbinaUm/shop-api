@@ -50,11 +50,13 @@ const run = async () => {
             username: "Jane",
             password: "123",
             token: randomUUID(),
+            role: 'admin'
         },
         {
             username: "John",
             password: "123",
             token: randomUUID(),
+            role: 'user',
         });
 
     await db.close();

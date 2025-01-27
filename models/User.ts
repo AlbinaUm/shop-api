@@ -6,6 +6,7 @@ import {randomUUID} from "node:crypto";
 
 interface UserMethods {
     checkPassword(password: string): Promise<boolean>;
+
     generateToken(): void;
 }
 
@@ -26,7 +27,7 @@ const UserSchema = new Schema<
         required: true,
         unique: true,
         validate: {
-            validator: async function (this: HydratedDocument<UserFields> ,value: string): Promise<boolean> {
+            validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
                 if (!this.isModified('username')) return true;
                 const user: UserFields | null = await User.findOne({username: value});
                 return !user;
@@ -37,6 +38,12 @@ const UserSchema = new Schema<
     password: {
         type: String,
         required: true,
+    },
+    role: {
+        type: String,
+        required: true,
+        default: 'user',
+        enum: ['user', 'admin'],
     },
     token: {
         type: String,

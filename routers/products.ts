@@ -3,6 +3,8 @@ import {ProductWithoutId} from "../types";
 import {imagesUpload} from "../multer";
 import Product from "../models/Product";
 import Category from "../models/Category";
+import auth from "../middleware/auth";
+import permit from "../middleware/permit";
 
 const productsRouter = express.Router();
 
@@ -34,7 +36,7 @@ productsRouter.get('/:id', async (req, res, next) => {
 });
 
 
-productsRouter.post('/', imagesUpload.single('image'), async (req, res, next) => {
+productsRouter.post('/', imagesUpload.single('image'), auth, permit('admin'),  async (req, res, next) => {
 
     if (req.body.category) {
         const category = await Category.findById(req.body.category);
