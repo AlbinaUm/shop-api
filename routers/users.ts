@@ -59,7 +59,24 @@ userRouter.post('/sessions', async (req, res, next) => {
     }
 });
 
-userRouter.post('/secret', auth, async (req, res, next) => {
+userRouter.delete('/sessions', auth, async (req, res, next) => {
+    let reqWithAuth = req as RequestWithUser;
+    const userFromAuth = reqWithAuth.user;
+
+    try {
+        const user = await User.findOne({_id: userFromAuth._id});
+        if (user) {
+            user.generateToken();
+            await user.save();
+            res.send({message: 'Success logout'});
+        }
+    }catch (e) {
+        next(e);
+    }
+});
+
+
+userRouter.post('/secret', auth, async (req, res) => {
     let expressReq = req as RequestWithUser;
 
     const user = expressReq.user;
@@ -68,5 +85,6 @@ userRouter.post('/secret', auth, async (req, res, next) => {
 
     res.send({message: 'Secret material from Attractor', user: user});
 });
+
 
 export default userRouter;
