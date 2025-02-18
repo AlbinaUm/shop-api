@@ -17,6 +17,8 @@ const Schema = mongoose.Schema;
 
 const SALT_WORK_FACTOR = 10;
 
+const regEmail = /^(\w+[-.]?\w+)@(\w+)([.-]?\w+)?(\.[a-zA-Z]{2,3})$/;
+
 const UserSchema = new Schema<
     HydratedDocument<UserFields>,
     UserModel,
@@ -35,6 +37,26 @@ const UserSchema = new Schema<
             message: "This username is already taken",
         }
     },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        validate: [
+            {
+                validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
+                    const user: UserFields | null = await User.findOne({email: value});
+                    return !user;
+                },
+                message: "This email is already taken",
+            },
+            {
+                validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
+                    return regEmail.test(value);
+                },
+                message: "Invalid email format",
+            }
+        ]
+    },
     password: {
         type: String,
         required: true,
@@ -48,7 +70,10 @@ const UserSchema = new Schema<
     token: {
         type: String,
         required: true,
-    }
+    },
+    displayName: String,
+    googleID: String,
+    facebookID: String,
 });
 
 UserSchema.pre('save', async function (next) {
