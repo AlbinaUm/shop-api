@@ -16,25 +16,22 @@ const Schema = mongoose.Schema;
 
 const SALT_WORK_FACTOR = 10;
 
+interface UserVirtuals {
+    confirmPassword: string;
+}
+
 const regEmail = /^(\w+[-.]?\w+)@(\w+)([.-]?\w+)?(\.[a-zA-Z]{2,3})$/;
 
 const UserSchema = new Schema<
     HydratedDocument<UserFields>,
     UserModel,
-    UserMethods
+    UserMethods,
+    {},
+    UserVirtuals
 >({
     username: {
         type: String,
         required: true,
-        unique: true,
-        validate: {
-            validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
-                if (!this.isModified('username')) return true;
-                const user: UserFields | null = await User.findOne({username: value});
-                return !user;
-            },
-            message: "This username is already taken",
-        }
     },
     email: {
         type: String,
@@ -43,6 +40,7 @@ const UserSchema = new Schema<
         validate: [
             {
                 validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
+                    if (!this.isModified('email')) return true;
                     const user: UserFields | null = await User.findOne({email: value});
                     return !user;
                 },
@@ -50,6 +48,7 @@ const UserSchema = new Schema<
             },
             {
                 validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
+                    if (!this.isModified('email')) return true;
                     return regEmail.test(value);
                 },
                 message: "Invalid email format",
@@ -72,6 +71,29 @@ const UserSchema = new Schema<
     },
     displayName: String,
     googleID: String,
+    facebookID: String,
+},
+    {
+        virtuals: {
+            confirmPassword: {
+                get() {
+                    return this.__confirmPassword
+                },
+                set(confirmPassword: string) {
+                    this.__confirmPassword = confirmPassword;
+                }
+            }
+        },
+    }
+);
+
+UserSchema.path("password").validate(function (value) {
+   if (!this.isModified('password')) return;
+
+   if (value !== this.confirmPassword) {
+       this.invalidate('password', 'Passwords do not match');
+       this.invalidate('confirmPassword', 'Passwords do not match');
+   }
 });
 
 UserSchema.pre('save', async function (next) {

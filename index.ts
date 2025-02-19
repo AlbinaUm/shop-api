@@ -7,6 +7,7 @@ import * as mongoose from "mongoose";
 import userRouter from "./routers/users";
 import config from "./config";
 import adminRouter from "./routers/admin";
+import cocktailsRouter from "./routers/cocktails";
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.static('public'));
 
 app.use('/products', productsRouter);
 app.use('/categories', categoriesRouter);
+app.use('/cocktails', cocktailsRouter);
 app.use('/users', userRouter);
 app.use('/admin', adminRouter);
 

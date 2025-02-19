@@ -47,14 +47,18 @@ const run = async () => {
         });
 
     await User.create({
+            email: "jane@gmail.com",
             username: "Jane",
             password: "123",
+            confirmPassword: "123",
             token: randomUUID(),
             role: 'admin'
         },
         {
+            email: "john@gmail.com",
             username: "John",
             password: "123",
+            confirmPassword: "123",
             token: randomUUID(),
             role: 'user',
         });

@@ -8,6 +8,52 @@ import config from "../config";
 const client = new OAuth2Client(config.google.clientId);
 
 const userRouter = express.Router();
+userRouter.post('/facebook', async (req, res, next) => {
+   try {
+       const {accessToken, userID} = req.body;
+       if (!accessToken && !userID) {
+           res.status(400).send({error: "Access token and userId must be in req"});
+           return;
+       }
+
+       const url = `https://graph.facebook.com/v12.0/me?fields=id,name,email&access_token=${accessToken}`;
+       const response = await fetch(url);
+
+       if (!response.ok) {
+           res.status(400).send({error: "Invalid Facebook user data"});
+           return;
+       }
+
+       const fbData = await response.json();
+
+       if (!fbData || fbData.id !== userID) {
+           res.status(400).send({error: "Invalid Facebook ID"});
+           return;
+       }
+
+       const facebookID = fbData.id;
+
+       let user = await User.findOne({email: fbData.email});
+
+       if (!user) {
+           const newPassword = crypto.randomUUID();
+           user = new User({
+               username: fbData.name,
+               email: fbData.email,
+               password: newPassword,
+               confirmPassword: newPassword,
+               facebookID,
+           });
+       }
+
+       user.generateToken();
+       user.facebookID = facebookID;
+       await user.save();
+       res.send({message: 'Login with facebook success!', user});
+   } catch (e) {
+       next(e);
+   }
+});
 
 userRouter.post("/google", async (req, res, next) => {
     try {
@@ -18,8 +64,6 @@ userRouter.post("/google", async (req, res, next) => {
 
 
         const payload = ticket.getPayload();
-
-        console.log(payload);
 
         if (!payload) {
             res.status(400).send({error: "Invalid credential. Google login error!"});
@@ -35,18 +79,22 @@ userRouter.post("/google", async (req, res, next) => {
             return;
         }
 
-        let user = await User.findOne({googleID: id});
+        let user = await User.findOne({email: email});
 
         if (!user) {
+            const newPassword =  crypto.randomUUID();
             user = new User({
-                username: email,
-                password: crypto.randomUUID(),
+                username: displayName,
+                email: email,
+                password: newPassword,
+                confirmPassword: newPassword,
                 googleID: id,
                 displayName,
             });
         }
 
         user.generateToken();
+        user.googleID = id;
         await user.save();
         res.send({message: 'Login with Google success!', user});
     } catch (e) {
@@ -61,6 +109,7 @@ userRouter.post('/register', async (req, res, next) => {
             username: req.body.username,
             email: req.body.email,
             password: req.body.password,
+            confirmPassword: req.body.confirmPassword,
         });
 
         user.generateToken();
@@ -79,10 +128,10 @@ userRouter.post('/register', async (req, res, next) => {
 
 userRouter.post('/sessions', async (req, res, next) => {
     try {
-        const user = await User.findOne({username: req.body.username});
+        const user = await User.findOne({email: req.body.email});
 
         if (!user) {
-            res.status(400).send({error: 'Username not found'});
+            res.status(400).send({error: 'Email not found'});
             return;
         }
 
