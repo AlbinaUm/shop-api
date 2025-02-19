@@ -25,5 +25,4 @@ export interface UserFields {
     role: string;
     displayName: string;
     googleID: string;
-    facebookID: string;
 }

@@ -6,7 +6,6 @@ import {randomUUID} from "node:crypto";
 
 interface UserMethods {
     checkPassword(password: string): Promise<boolean>;
-
     generateToken(): void;
 }
 
@@ -73,7 +72,6 @@ const UserSchema = new Schema<
     },
     displayName: String,
     googleID: String,
-    facebookID: String,
 });
 
 UserSchema.pre('save', async function (next) {

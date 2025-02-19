@@ -8,52 +8,6 @@ import config from "../config";
 const client = new OAuth2Client(config.google.clientId);
 
 const userRouter = express.Router();
-const FC_SECRET = '608f9c731e89f17a832f1cc58cf62881';
-const FC_ID = '612634465059437';
-
-userRouter.post("/facebook", async (req, res, next) => {
-    try {
-        const { accessToken, userID } = req.body;
-
-        // Запрос к Facebook API с использованием fetch
-        const fbUrl = `https://graph.facebook.com/v12.0/me?fields=id,name,email&access_token=${accessToken}`;
-        const response = await fetch(fbUrl);
-
-        if (!response.ok) {
-            res.status(400).send({ error: "Invalid Facebook token" });
-            return;
-        }
-
-        const fbData = await response.json();
-
-        if (!fbData || fbData.id !== userID) {
-            res.status(400).send({ error: "Invalid Facebook user data" });
-            return;
-        }
-
-        const email = fbData.email || `${fbData.id}@facebook.com`; // Заглушка, если email не передается
-        const displayName = fbData.name;
-        const facebookID = fbData.id;
-
-        let user = await User.findOne({ facebookID });
-
-        if (!user) {
-            user = new User({
-                username: email,
-                password: crypto.randomUUID(),
-                facebookID,
-                displayName,
-            });
-        }
-
-        user.generateToken();
-        await user.save();
-
-        res.send({ message: "Login with Facebook success!", user });
-    } catch (error) {
-        next(error);
-    }
-});
 
 userRouter.post("/google", async (req, res, next) => {
     try {
